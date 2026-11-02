@@ -1,0 +1,5 @@
+# lets not upload 1M useless shit to git
+
+.venv/
+__pycache__/
+*.pyc
