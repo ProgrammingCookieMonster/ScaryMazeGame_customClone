@@ -33,3 +33,12 @@ def load_sounds(pattern):
         except pygame.error:
             print(f"[assets] could not be load sound: {path}")
     return sounds
+
+def play_music(filename, volume):
+    path = os.path.join(BASE_DIR, "assets", "sounds", filename)
+    try:
+        pygame.mixer.music.load(path)       # prepare track
+        pygame.mixer.music.set_volume(volume)
+        pygame.mixer.music.play(-1)         # on forever loop
+    except(FileNotFoundError, pygame.error):
+        print(f"[assets] could not play music: {path}")

@@ -10,6 +10,7 @@ def draw_text(surface, text, font, color, center):
 
 class Menu:
     def __init__(self, options, font, center_x, start_y, spacing=70):
+        self.stick_ready = True
         self.options = options
         self.font = font
         self.selected = 0
@@ -19,25 +20,48 @@ class Menu:
             rect = pygame.Rect(0, 0, 320, 56)
             rect.center = (center_x, start_y + i * spacing)
             self.rects.append(rect)
+    def _move(self, step):
+        self.selected = (self.selected + step) % len(self.options)
 
     def handle_event(self, event):
-        # literally what is being pressed
         if event.type == pygame.KEYDOWN:
-            # should support controller too if used on the TV outside??
             if event.key in (pygame.K_UP, pygame.K_w):
-                self.selected = (self.selected - 1) % len(self.options)
+                self._move(-1)
             elif event.key in (pygame.K_DOWN, pygame.K_s):
-                self.selected = (self.selected + 1) % len(self.options)
+                self._move(1)
             elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
                 return self.options[self.selected]
 
-        elif event.type == pygame.MOUSEMOTION:      # hover effect
+        # ---- controller ----
+        elif event.type == pygame.JOYBUTTONDOWN:
+            if event.button == BTN_CONFIRM:
+                return self.options[self.selected]
+            elif event.button == BTN_DPAD_UP:
+                self._move(-1)
+            elif event.button == BTN_DPAD_DOWN:
+                self._move(1)
+
+        elif event.type == pygame.JOYHATMOTION:     # D-pad, when reported as a "hat"
+            if event.value[1] == 1:                 # value is (x, y); y=1 means up
+                self._move(-1)
+            elif event.value[1] == -1:
+                self._move(1)
+
+        elif event.type == pygame.JOYAXISMOTION and event.axis == 1:   # left stick, vertical
+            if abs(event.value) < 0.3:
+                self.stick_ready = True             # stick is back near the middle
+            elif self.stick_ready and abs(event.value) > 0.6:
+                self._move(1 if event.value > 0 else -1)
+                self.stick_ready = False            # wait until it returns to the middle
+
+        # ---- mouse / touch (unchanged) ----
+        elif event.type == pygame.MOUSEMOTION:
             for i, rect in enumerate(self.rects):
                 if rect.collidepoint(event.pos):
                     self.selected = i
 
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            for i, rect in enumerate(self.rects):      # click
+            for i, rect in enumerate(self.rects):
                 if rect.collidepoint(event.pos):
                     return self.options[i]
         return None

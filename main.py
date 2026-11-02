@@ -3,7 +3,7 @@ import random
 import sys
 import pygame
 from settings import *
-from assets import load_image, load_sounds
+from assets import load_image, load_sounds, play_music
 from level import Level
 from menu import Menu, draw_text
 
@@ -29,8 +29,11 @@ class Game:
         self.death_sounds = load_sounds("death_*.*")
         win_sounds = load_sounds("win.*")
         self.win_sound = win_sounds[0] if win_sounds else None
+        play_music(MUSIC_FILE, MUSIC_VOLUME)
 
         self.level = Level()
+
+        self.pads = {}   # connected controllers, keyed by their instance id
 
         # Menus
         self.main_menu = Menu(["Play", "Quit"], self.font_menu,
@@ -60,7 +63,9 @@ class Game:
         self.open_popup("You died!")
 
     def win(self):
-                # the image for the win is either sussy or scarry, so it plays only for the duration of the sound
+        # the image for the win is either sussy or scarry, so it plays only for the duration of the sound
+        # pause background song while this plays
+        pygame.mixer.music.pause()
         self.state = "win"
         if self.win_sound:
             self.win_sound.play()
@@ -85,7 +90,26 @@ class Game:
             self.draw()
             pygame.display.flip()
 
+    def is_pause(self, event):
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            return True
+        if event.type == pygame.JOYBUTTONDOWN and event.button == BTN_PAUSE:
+            return True
+        return False
+
     def handle_event(self, event):
+
+            # --- controller plugged in / out ---
+        if event.type == pygame.JOYDEVICEADDED:
+            pad = pygame.joystick.Joystick(event.device_index)
+            self.pads[pad.get_instance_id()] = pad
+            return
+        if event.type == pygame.JOYDEVICEREMOVED:
+            self.pads.pop(event.instance_id, None)
+            if self.state == "playing":      # wont let the dot drift or die unattended
+                self.open_popup("Paused")
+            return
+
         if self.state == "menu":
             choice = self.main_menu.handle_event(event)
             if choice == "Play":
@@ -118,10 +142,19 @@ class Game:
             dy = (keys[pygame.K_DOWN] or keys[pygame.K_s]) - \
                  (keys[pygame.K_UP] or keys[pygame.K_w])
 
+            # left stick of every connected controller
+            for pad in self.pads.values():
+                ax = pad.get_axis(0)        # left/right, -1.0 --> 1.0
+                ay = pad.get_axis(1)        # up/down,    -1.0 --> 1.0
+                if abs(ax) > DEADZONE:
+                    dx += ax
+                if abs(ay) > DEADZONE:
+                    dy += ay
+
             move = pygame.math.Vector2(dx, dy)
-            if move.length_squared() > 0:
-                # normalize so diagonals aren't faster than straight lines
-                self.player_pos += move.normalize() * PLAYER_SPEED * dt
+            if move.length() > 1:
+                move.scale_to_length(1)     # never faster than full speed
+            self.player_pos += move * PLAYER_SPEED * dt
 
             x, y = self.player_pos
             if not self.level.circle_is_safe(x, y, PLAYER_RADIUS):
@@ -131,6 +164,8 @@ class Game:
 
         elif self.state == "win":
             if pygame.time.get_ticks() >= self.win_end_time:
+                # unpause background
+                pygame.mixer.music.unpause()
                 self.open_popup("You made it!")
 
     # ---------- drawing ----------

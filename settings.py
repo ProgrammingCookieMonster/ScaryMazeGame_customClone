@@ -10,6 +10,13 @@ TITLE = "Spooky Smurf"
 CREDITS_LINE_1 = "Made by TORRENT 2026"
 CREDITS_LINE_2 = "WYSIWYG  -  v0.3.5"
 
+# --- Controller ---
+DEADZONE = 0.2      # stick values smaller than this are ignored (sticks never rest at exactly 0)
+BTN_CONFIRM = 0
+BTN_PAUSE = 6       # Options
+BTN_DPAD_UP = 11
+BTN_DPAD_DOWN = 12
+
 # --- Colours in RGB ---
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -19,6 +26,10 @@ WALL_COLOR = (25, 15, 35)
 PATH_COLOR = (235, 225, 200)
 PLAYER_COLOR = (40, 120, 255)
 FINISH_COLOR = (60, 200, 90)
+
+# --- Music ---
+MUSIC_FILE = "background.ogg"
+MUSIC_VOLUME = 0.15
 
 # --- Player ---
 PLAYER_RADIUS = 13
