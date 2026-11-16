@@ -3,7 +3,7 @@
 # --- Window ---
 WIDTH, HEIGHT = 1920, 1080
 FPS = 60
-FULLSCREEN = False          # True for running game on booth
+FULLSCREEN = True          # True for running game on booth
 TITLE = "Spooky Smurf"
 
 # Main Menu extras
@@ -32,8 +32,8 @@ MUSIC_FILE = "background.ogg"
 MUSIC_VOLUME = 0.15
 
 # --- Player ---
-PLAYER_RADIUS = 13
-PLAYER_SPEED = 300          # pixels per second
+PLAYER_RADIUS = 11
+PLAYER_SPEED = 400          # pixels per second
 
 # --- Path ---
 # The centre line of the serpentine. Corners of the "S" shape.
@@ -46,8 +46,8 @@ WAYPOINTS = [
     (RIGHT, ROWS[3]), (LEFT, ROWS[3]),    # down, row 4: go left -> finish
 ]
 PATH_WIDTH_START = 135       # width path at start, should look promising and duable
-PATH_WIDTH_END = 32         # controls difficulty for the end -- cannot make this too short if prizes are involved
-FINISH_SIZE = 32
+PATH_WIDTH_END = 28         # controls difficulty for the end -- cannot make this too short if prizes are involved
+FINISH_SIZE = 28
 STEP = 2                    # drawing precision (pixels between "stamps")
 
 # --- Win screen ---
